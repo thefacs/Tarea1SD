@@ -1,111 +1,101 @@
-# Tarea1SD
+# Sistema Distribuido de Caché para Consultas Geoespaciales
 
-# Tarea 1 – Sistema distribuido de caché para consultas geoespaciales
-
-Este proyecto implementa una plataforma distribuida basada en microservicios para optimizar consultas geoespaciales sobre el dataset **Google Open Buildings**, limitado a la Región Metropolitana de Santiago.
-
-El sistema simula un flujo real de procesamiento de consultas mediante:
-- Generador de tráfico (Zipf / Uniform)
-- Proxy de caché con Redis
-- Generador de respuestas en memoria
-- Servicio de métricas
-
-Todo el sistema está orquestado con **Docker Compose**, lo que permite su despliegue reproducible en cualquier entorno.
+Este proyecto implementa un sistema distribuido de caché sobre el dataset **Google Open Buildings** (Región Metropolitana de Santiago), utilizando una arquitectura basada en microservicios con Docker.
 
 ---
 
-## 📁 Estructura del proyecto
+## Arquitectura del sistema
 
-tarea1sdv2/
-├── Servidor/                # Proxy de caché (Node.js + Redis)
-├── Generador-respuestas/    # Motor de consultas en memoria
-├── Metricas/                # Servicio de métricas y logging
-├── Generador-trafico/       # Simulador de carga (Zipf / Uniform)
-├── data/                    # Dataset Open Buildings
-├── metrics_data/            # Persistencia de métricas (CSV)
-├── docker-compose.yml
-└── README.md
+El sistema está compuesto por los siguientes microservicios:
 
----
-
-## ⚙️ Requisitos
-
-- Docker ≥ 20.10
-- Docker Compose ≥ 2.x
-- Git
-- (Opcional) Python 3.9+ para visualización de resultados
+| Servicio                  | Puerto | Función                                   |
+|--------------------------|--------|-------------------------------------------|
+| Generador de tráfico     | —      | Genera consultas (Zipf / Uniforme)        |
+| Proxy de caché           | 3000   | Implementa cache-aside con Redis          |
+| Generador de respuestas  | 3001   | Procesamiento de consultas en memoria      |
+| Servicio de métricas     | 4000   | Registro y análisis de desempeño           |
+| Redis                    | 6379   | Almacenamiento en caché                   |
 
 ---
 
-## 🚀 Instalación y ejecución
+## Ejecución de experimentos
 
-### 1. Clonar el repositorio
+Antes de ejecutar cada experimento, se recomienda limpiar el entorno:
 
-git clone https://github.com/TU_USUARIO/tarea1sdv2.git
-cd tarea1sdv2
-
-### 2. Agregar dataset
-
-data/open_buildings_v3_points_your_own_wkt_polygon.csv
-
-### 3. Ejecutar sistema
-
-docker-compose up --build
-
-### 4. Detener sistema
-
-docker-compose down
-
-Para limpiar completamente:
-
+```bash
 docker-compose down -v
+```
+
+### 1. Distribución Zipf (base)
+```bash
+docker-compose up | tee resultados_zipf.txt
+cp metrics_data/metrics.csv metrics_zipf.csv
+```
+
+### 2. Distribución uniforme
+```bash
+DISTRIBUTION=uniform docker-compose up | tee resultados_uniform.txt
+cp metrics_data/metrics.csv metrics_uniform.csv
+```
+
+### 3. Caché 50 MB (Zipf)
+```bash
+CACHE_SIZE=50mb docker-compose up | tee resultados_cache_50mb.txt
+cp metrics_data/metrics.csv metrics_cache_50mb.csv
+```
+
+### 4. Caché 500 MB (Zipf)
+```bash
+CACHE_SIZE=500mb docker-compose up | tee resultados_cache_500mb.txt
+cp metrics_data/metrics.csv metrics_cache_500mb.csv
+```
+
+### 5. Política de evicción LFU (Zipf, 200 MB)
+```bash
+EVICTION_POLICY=allkeys-lfu docker-compose up | tee resultados_lfu.txt
+cp metrics_data/metrics.csv metrics_lfu.csv
+```
+
+### 6. TTL = 60 segundos (Zipf)
+```bash
+TTL=60 docker-compose up | tee resultados_ttl_60.txt
+cp metrics_data/metrics.csv metrics_ttl_60.csv
+```
 
 ---
 
-## 🧪 Experimentos
+## Resultados principales
 
-Zipf (default):
-docker-compose up
-
-Uniforme:
-DISTRIBUTION=uniform docker-compose up
-
-CACHE_SIZE=50mb docker-compose up
-CACHE_SIZE=200mb docker-compose up
-CACHE_SIZE=500mb docker-compose up
-
-EVICTION_POLICY=allkeys-lfu docker-compose up
-
-TTL=60 docker-compose up
+| Experimento | Hit Rate | Cache Efficiency | Evictions |
+|-------------|----------|------------------|-----------|
+| Zipf (200 MB, LRU)       | 61,17% | −2,86 ms | 0 |
+| Uniform (200 MB, LRU)    | 56,83% | −7,83 ms | 0 |
+| Zipf (50 MB)             | 63,67% | −1,68 ms | 0 |
+| Zipf (500 MB)            | 62,50% | −2,27 ms | 0 |
+| Zipf (LFU)               | 62,50% | −3,18 ms | 0 |
+| Zipf (TTL 60s)           | 62,33% | −4,68 ms | 0 |
 
 ---
 
-## 📊 Métricas
+## Conclusiones
 
-http://localhost:4000/metrics
-
-CSV:
-http://localhost:4000/metrics/csv
-
-Reset:
-POST http://localhost:4000/metrics/reset
+- Zipf presenta mejor rendimiento por mayor localidad de referencia.
+- El tamaño de caché no afecta significativamente los resultados.
+- LRU y LFU muestran comportamiento similar.
+- TTL bajo reduce la eficiencia de caché.
+- La eficiencia global es negativa en todos los casos.
 
 ---
 
-## 📈 Script de gráficos
+## Observaciones
 
-python3 graficar_resultados.py
-
----
-
-## 🧠 Notas
-
-- conf_min varía entre 0.0 y 1.0
-- eficiencia = (hits * t_cache - misses * t_dh) / total
-- métricas se guardan en metrics.csv
+- Q4 es la consulta más sensible del sistema.
+- El rendimiento depende principalmente de la localidad del tráfico.
 
 ---
 
-## 👤 Autor
+## Mejoras futuras
 
-Felipe – Sistemas Distribuidos 2026-1
+- Cache warming
+- TTL dinámico
+- Mayor presión de memoria para evaluar reemplazo
