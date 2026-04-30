@@ -18,6 +18,18 @@ El sistema está compuesto por los siguientes microservicios:
 
 ---
 
+## A tener en cuenta
+
+Debido al tamaño del dataset, no fue posible incluirlo en el repositorio de GitHub. Por esta razón, no se encuentra disponible la carpeta `data`.
+
+Para ejecutar el proyecto correctamente, se debe crear manualmente una carpeta llamada `data` al mismo nivel que los demás módulos (Generador-respuestas, Generador-trafico, etc.).
+
+Dentro de esta carpeta debe ubicarse el dataset con el siguiente nombre:
+
+`open_buildings_v3_points_your_own_wkt_polygon`
+
+
+
 ## Ejecución de experimentos
 
 Antes de ejecutar cada experimento, se recomienda limpiar el entorno:
