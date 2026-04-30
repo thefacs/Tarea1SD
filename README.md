@@ -28,6 +28,23 @@ Dentro de esta carpeta debe ubicarse el dataset con el siguiente nombre:
 
 `open_buildings_v3_points_your_own_wkt_polygon`
 
+### Estructura esperada del proyecto
+```
+.
+├── data/
+│   └── open_buildings_v3_points_your_own_wkt_polygon
+├── Generador-respuestas/
+├── Generador-trafico/
+├── Metricas/
+├── metrics_data/
+└── Servidor/
+```
+
+
+El dataset utilizado en este proyecto se encuentra disponible en el siguiente enlace de Google Drive:
+
+https://drive.google.com/drive/folders/1LtB59mjF44-3lFdpwxXqUx3fg6pDoKzI?usp=sharing
+
 
 
 ## Ejecución de experimentos
