@@ -99,3 +99,8 @@ cp metrics_data/metrics.csv metrics_ttl_60.csv
 - Cache warming
 - TTL dinámico
 - Mayor presión de memoria para evaluar reemplazo
+  
+## Integrantes
+
+- Felipe Cuevas  
+- Ariel Oyarce
